@@ -1,0 +1,86 @@
+#!/usr/bin/python
+
+import socket,sys
+
+#quitmessage=':ragsagar!n=ragsagar@117.204.98.53 QUIT :Client Quit'
+#ordmsg=':ragsagar!n=ragsagar@117.204.98.53 PRIVMSG #aymer :hi pelly'
+#/memsg=':ragsagar!n=ragsagar@117.204.98.53 PRIVMSG #aymer :ACTION hi'
+#joinmsg=':ragsagar!n=ragsagar@117.204.98.53 JOIN :#aymer'
+#server='irc.freenode.net'
+#port=6667
+#channel='#aymer'
+#nick='pelly'
+#realname='Pell The Bot'
+
+
+class Bot:
+	"""the bot class"""
+	
+	def __init__(self,server='irc.freenode.net',port=6667):
+		self.sock=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+		self.connection=self.sock.connect_ex((server,port))
+		self.input=self.sock.makefile('rb',0)
+		self.output=self.sock.makefile('wb',0)
+		if self.connection is 0:
+			print "Connected"
+						
+	def identify(self,nick='pelly',realname='Pelly The Bot'):
+		"passes nickname and username to the server"
+		self.nick=nick
+		#self.output.write('PASS botmaker\r\n')
+		self.output.write('NICK '+nick+'\r\n')
+		self.output.write('USER '+nick+' 8 * :'+realname+'\r\n')
+			
+	def join_channel(self,channel='#aymer'):
+		"Joins a channel by passing 'JOIN <channel>'"
+		self.channel = channel
+		done = True
+		while  done :
+			text=self.input.readline().strip()
+			print text
+			if text.find('PRIVMSG') == -1:
+				done=True
+			else:
+				self.output.write('JOIN '+channel+'\r\n')
+				done=False
+		print self.input.readline().strip()		
+		return 0		
+				
+	def work(self):
+		"Stay in the channel"		
+		message=self.input.readline().strip()
+		while True:
+			#print message
+			if message.find('PRIVMSG')!=-1:
+				self.parseMessage(message)
+				message=message.split()
+				if message[0] is 'PING':
+					self.output.write('PONG '+message[1]+'\n')
+			message=self.input.readline().strip()
+	
+	def parseMessage(self,message):
+		msg=message.split(':')[2]
+		author=message.split(':')[1].split('!')[0]
+		print "%s : %s" % (author,msg)
+		#if msg.find('hi pelly') != -1 or msg.find('pelly, hi') != -1 or or msg.find('yo pelly') != -1 or msg.find('hello pelly') != -1 or msg.find('pelly, hello') != -1 :
+		#	self.output.write('PRIVMSG '+self.channel+' : '+author+', yo yo \r\n')
+			
+			
+		
+			
+	def close(self):
+		"Close the connection"
+		self.sock.close()
+		print "Closed"
+	
+			
+		
+if __name__=='__main__':
+	bot=Bot()
+	bot.identify()
+	status=bot.join_channel('#aymer')
+#	if status==0:
+#		bot.work()		
+#	else :
+#		bot.close()	
+
